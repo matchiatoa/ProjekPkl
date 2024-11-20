@@ -13,12 +13,20 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::all();
-        return view('users.index', [
-            'users' => $users
-        ]);
+        $query = User::query();
+
+        // Jika ada parameter 'search', filter berdasarkan nama atau email
+        if ($request->has('search') && $request->get('search') != '') {
+            $searchTerm = $request->get('search');
+            $query->where('name', 'like', "%{$searchTerm}%")
+                  ->orWhere('email', 'like', "%{$searchTerm}%");
+        }
+
+        $users = $query->get();
+
+        return view('users.index', compact('users'));
     }
 
     /**
@@ -66,6 +74,8 @@ class UserController extends Controller
     public function show($id)
     {
         $user = User::findOrFail($id);
+
+        // Pass the single user object to the 'show' view
         return view('users.show', compact('user'));
     }
 
